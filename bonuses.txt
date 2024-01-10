@@ -1,0 +1,61 @@
+BONUS CHALLENGE FORM
+--------------------
+
+For each bonus challenge you have implemented, please replace the sentence "We are not entitled to this bonus."
+with a short description of:
+
+1. How it was implemented in your code
+2. Where it was used (in which class methods).
+3. How you tested that it is working correctly.
+
+--------------------
+
+1. Fully supporting all configuration fields and avoiding the use of magic numbers
+
+1.We've replaced every usage of magic numbers with correlating config fields or with final constants defined at top of each class
+2.Dealer : run(), terminate(), removeCardsFromTable(),placeCardsOnTable(),sleepUntilWokenOrTimeOut(),updateTimerDisplay(),removeAllCardsFromTable()
+  Player : run(), createArtificalIntelliegence(), keyPressed(), point(), penalty(), timerHelper(), setFlag() 
+  Table  : placeCard(), removeCard()
+3.We've ran several tests to make sure no property was damaged and the game ran smoothly.
+--------------------
+
+2. Terminating all threads (that you created) gracefully and in reverse order to the order they were created in.
+
+1. We ran a loop from Player[0] till last player and created each Player thread (and AI thread if needed), and maintained a delay between each Thread creation 
+so we ensure that it was done in this order (we've also created a flag so no thread could place cards on the table untill all players were created).
+then after the game was finished we've terminated the threads in reverse order of the players in the following way:
+we've joined the human thread then the AI thread, we've interrupted the dealer thread and joined it, so that first the computer thread would close, then the human, 
+then continue the loop.
+2. Dealer : terminate(), run()
+   Player : terminate()
+3. We've looked through the log file and saw that they were closed in reverse order
+
+--------------------
+
+3. Handling the config.turnTimeoutMillis value as follows:
+config.turnTimeoutMillis < 0: display nothing.
+config.turnTimeoutMillis = 0: display a timer since the last action (reshuffle or set collected).
+Note: in modes without a countdown timer the dealer must ensure there is always at least one legal set on the table.
+
+We are not entitled to this bonus.
+
+--------------------
+
+4. Making sure that the threads do not wake up unless some actual job needs to be done (e.g., a value needs to be
+changed on the display, key input needs to be handled, etc.) and the only threads created by you are:
+1 thread per player + 1 additional thread for non-human players.
+
+1. AI is waiting while the pressing queue is full or the dealer is currently replacing cards, when it finishes waiting it generates a key press which will notify the player thread, but it will only generate 
+if player thread is sleeping NOT because his set is checked, meaning that ONLY THE DEALER notifies the player from waiting because of a set check.
+Also dealer waits while he was not called to check a set, but he waits for different periods of times according to whether 5 seconds are left or more, if less than 5 seconds are left it wakes up every 1 mili sec, otherwise only once a second to change the clock.
+So to sum up :
+AI waits while pressing queue is full or placing\removing cards occurs
+Player waits in 2 scenarios, Scenario 1 : if his pressing queue is empty or placing\removing cards occurs or is flag is currently RESET, meaning dealer did not penalty\point flag
+In scenario 1 he is waken up by a key pressed (human or ai generated) and in scenario 2 by the dealer
+Dealer waits for either 1 mili second or 1 full second according to time <= warning (5) and is waken up by the player to check his set.
+Also, we've only created 1 player thread + 1 additional thread for AI
+
+2. Player: run(), createArtificialIntelligence(), keyPressed(int slot), point(), penalty()
+   Dealer : run(), removeCardsFromTable(), placeCardsOnTable(), sleepUntilWokenOrTimeout(), removeAllCardsFromTable(), addPotential(Player p)
+3.We've ran several tests to make sure no property was damaged and the game ran smoothly, and also we've debugged with longer seconds to see that each waking up actually happens when it should happen and 
+by the thread that should've woken it up
